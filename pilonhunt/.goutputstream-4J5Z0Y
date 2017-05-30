@@ -6,7 +6,7 @@ import motor
 from socket import *
 from time import ctime          # Import necessary modules   
 import time
-import vision
+import cv2
 
 ctrl_cmd = ['forward', 'backward', 'left', 'right', 'stop', 'read cpu_temp', 'home', 'distance', 'x+', 'x-', 'y+', 'y-', 'xy_home', 'pilonhunt']
 
@@ -26,29 +26,17 @@ motor.setup()     # Initialize the Raspberry Pi GPIO connected to the DC motor.
 video_dir.home_x_y()
 car_dir.home()
 
-vision.init()
-
 def pilonhunt():
 	print 'Looking for pilons...'
 	motor.ctrl(0)
 	car_dir.home()
-	pilons = []
-	#video_dir.maxright()
-	#time.sleep(2.0)
-	video_dir.tilt_rel(0)
-	r = 0.2
+	video_dir.maxright()
+	time.sleep(1.0)
+	r = 0
 	while r<1:
-#		r = video_dir.pan(100)
-		video_dir.tilt_rel(0)
-		video_dir.pan_rel(r)
-		r = r + 0.2
-		time.sleep(1.0)
-		pilons.append(len(vision.detect()))
-		video_dir.tilt_rel(0.05)
-		time.sleep(0.5)
-		pilons.append(len(vision.detect()))
-	video_dir.home_x()
-	print pilons
+		r = video_dir.pan(5)
+		time.sleep(0.1)
+	video_dir.home_x_y()
 
 while True:
 	print 'Waiting for connection...'

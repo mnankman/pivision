@@ -9,7 +9,7 @@ Current_x = 0
 Current_y = 0
 
 def setup():
-	global Xmin, Ymin, Xmax, Ymax, home_x, home_y, pwm
+	global Xmin, Ymin, Xmax, Ymax, homeX, homeY, pwm
 	offset_x = 0
 	offset_y = 0
 	try:
@@ -26,53 +26,67 @@ def setup():
 	Xmax = MaxPulse + offset_x
 	Ymin = MinPulse + offset_y
 	Ymax = MaxPulse + offset_y
-	home_x = (Xmax + Xmin)/2
-	home_y = Ymin + 80
+	homeX = (Xmax + Xmin)/2
+	homeY = Ymin + 80
 	pwm = servo.PWM()           # Initialize the servo controller. 
 	pwm.set_frequency(60)
 
 
 def setx(x):
-   pwm.set_value(14, 0, x) # CH14 <---> X axis
+	global Current_x
+	Current_x = x
+	pwm.set_value(14, 0, Current_x) # CH14 <---> X axis
 	
 def sety(y):
-   pwm.set_value(15, 0, y) # CH15 <---> Y axis
+	global Current_y
+	Current_y = y
+	pwm.set_value(15, 0, Current_y) # CH15 <---> Y axis
 	
 def maxleft():
-	global Current_x
-	Current_x = Xmin	
-    setx(Current_x)
+	setx(Xmax)
 
 def maxright():
-	global Current_x
-	Current_x = Xmax	
-    setx(Current_x)
+	setx(Xmin)
+
+def home_x():
+	setx(homeX)
 
 def pan(i):
 	global Current_x
 	Current_x += i
-	r = (Xmax-Xmin)/Current_x
+	r = (Current_x - Xmin) / (Xmax - Xmin)
 	if Current_x > Xmax:
 		Current_x = Xmax
 		r = 1
 	if Current_x <= Xmin:
 		Current_x = Xmin
 		r = 0
-    setx(Current_x)
-    return r
+	setx(Current_x)
+	return r
+	
+def pan_rel(r):
+	global Current_x
+	Current_x = int(Xmin + (Xmax - Xmin) * r)
+	#print 'Current_x =', Current_x
+	setx(Current_x)
 
 def tilt(i):
 	global Current_y
 	Current_y += i
-	r = (Ymax-Ymin)/Current_y
+	r = (Current_y - Ymin) / (Ymax - Ymin)
 	if Current_y > Ymax:
 		Current_y = Ymax
 		r = 1
 	if Current_y <= Ymin:
 		Current_y = Ymin
 		r = 0
-    sety(Current_y)
-    return r
+	sety(Current_y)
+	return r
+	
+def tilt_rel(r):
+	global Current_y
+	Current_y = int(Ymin + (Ymax -Ymin) * r)
+	sety(Current_y)
 	
 
 # ==========================================================================================
@@ -120,16 +134,12 @@ def move_decrease_y():
 # move forward.
 # ==========================================================================================
 def home_x_y():
-	global Current_y
-	global Current_x
-	Current_y = home_y 
-	Current_x = home_x
-	pwm.set_value(14, 0, Current_x)
-	pwm.set_value(15, 0, Current_y)
+	setx(homeX)
+	sety(homeY)
 
 def calibrate(x,y):
-	pwm.set_value(14, 0, (MaxPulse+MinPulse)/2+x)
-	pwm.set_value(15, 0, (MaxPulse+MinPulse)/2+y)
+	setx((MaxPulse+MinPulse)/2+x)
+	sety((MaxPulse+MinPulse)/2+y)
 
 def test():
 	while True:
